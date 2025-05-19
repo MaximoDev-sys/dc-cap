@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Verificación</title>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding-top: 100px; background: #121212; color: white; }
+    #main-content { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Verificación de seguridad</h1>
+  <p>Por favor completa el Captcha para acceder al sitio.</p>
+
+  <form id="captcha-form">
+    <div class="cf-turnstile" data-sitekey="TU_SITE_KEY_DE_TURNSTILE" data-callback="onCaptchaSuccess"></div>
+  </form>
+
+  <div id="main-content">
+    <h2>¡Bienvenido a la página principal!</h2>
+    <p>Contenido desbloqueado tras validación exitosa.</p>
+  </div>
+
+  <script>
+    function onCaptchaSuccess(token) {
+      fetch('verificador/verificar-captcha.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          document.querySelector('#captcha-form').style.display = 'none';
+          document.querySelector('#main-content').style.display = 'block';
+        } else {
+          alert("Captcha inválido. Inténtalo nuevamente.");
+        }
+      });
+    }
+  </script>
+</body>
+</html>
