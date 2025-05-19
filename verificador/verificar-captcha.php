@@ -2,7 +2,7 @@
 // verificar-captcha.php
 
 $input = json_decode(file_get_contents('php://input'), true);
-$token = $input['token'] ?? null;
+$token = $input['0x4AAAAAABd1nE-a5z1aEsok'] ?? null;
 
 if (!$token) {
     echo json_encode(['success' => false]);
