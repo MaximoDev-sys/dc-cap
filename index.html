@@ -1,44 +1,489 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Verificación</title>
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-  <style>
-    body { font-family: sans-serif; text-align: center; padding-top: 100px; background: #121212; color: white; }
-    #main-content { display: none; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team FALOPA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+        
+        /* Estilos generales */
+        body {
+            overflow-x: hidden;
+            background-color: #202020;
+            color: #F0F3F4;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(100, 116, 139, 0.7);
+            border-radius: 10px;
+            border: 2px solid rgba(30, 41, 59, 0.5);
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.8);
+        }
+        
+        /* Efecto vidrio */
+        .glass-effect {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        
+        /* Efecto reflejo dinámico */
+        .glass-reflective {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glass-reflective::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0) 40%,
+                rgba(255, 255, 255, 0.1) 45%,
+                rgba(255, 255, 255, 0) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: rotate(30deg);
+            transition: all 0.5s ease;
+            opacity: 0;
+        }
+        
+        .glass-reflective:hover::after {
+            opacity: 0.8;
+            top: -30%;
+            left: -30%;
+        }
+        
+        /* Efecto 3D para tarjetas */
+        .card-3d {
+            transform-style: preserve-3d;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        /* Efecto de distorsión */
+        .distortion-effect {
+            animation: distort 6s infinite alternate;
+        }
+        
+        @keyframes distort {
+            0% { 
+                filter: drop-shadow(0 0 5px #00ff00) hue-rotate(0deg);
+                transform: scale(1);
+            }
+            25% { 
+                filter: drop-shadow(0 0 10px #00ff00) hue-rotate(90deg);
+                transform: scale(1.02);
+            }
+            50% { 
+                filter: drop-shadow(0 0 5px #00ff00) hue-rotate(180deg);
+                transform: scale(1);
+            }
+            75% { 
+                filter: drop-shadow(0 0 15px #00ff00) hue-rotate(270deg);
+                transform: scale(1.02);
+            }
+            100% { 
+                filter: drop-shadow(0 0 5px #00ff00) hue-rotate(360deg);
+                transform: scale(1);
+            }
+        }
+        
+        /* Efecto de máquina de escribir */
+        .typing-effect::after {
+            content: '|';
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        /* Animación flotante */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+        
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        /* Fuente hacker */
+        .hacker-font {
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.7);
+        }
+        
+        /* Transición para modales */
+        .modal-transition {
+            transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+
+        .elhueso {
+            transform: translateY(-272px); /* también sube 20 píxeles */
+        }
+
+        .hcorreccion {
+            height: 18rem;
+        }
+
+        .casillas {
+            transform: scale(0.8);
+            transform-origin: top center; /* mantiene el sitio centrado arriba */
+        }
+    </style>
 </head>
 <body>
-  <h1>Verificación de seguridad</h1>
-  <p>Por favor completa el Captcha para acceder al sitio.</p>
+    <!-- Pantalla de verificación -->
+    <div id="verificationScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 backdrop-blur-md">
+        <div class="bg-black card-3d text-center p-8 w-96 h-96 flex flex-col items-center justify-center glass-effect rounded border border-sky-600/20"
+            onmousemove="handleCardMove(event, this)"
+            onmouseleave="resetCard(this)">
+            <img src="https://i.imgur.com/rwZJJ2d.png" alt="Team FALOPA" class="mx-auto mb-6 h-32 distortion-effect floating">
+            <h1 class="text-3xl mb-4 hacker-font text-sky-400">Team FALOPA</h1>
+            <p id="verificationText" class="mb-4 hacker-font text-sky-300 typing-effect">Verificando tu información...</p>
+            <p id="ipText" class="mb-6 hacker-font text-sky-200 text-sm"></p>
+            <button id="enterButton" class="hidden hacker-font bg-sky-900/80 hover:bg-sky-800/90 text-sky-200 px-6 py-3 rounded transition-all duration-300 transform hover:scale-105 border border-sky-400/30">
+                CONTINUAR
+            </button>
+        </div>
+    </div>
 
-  <form id="captcha-form">
-    <div class="cf-turnstile" data-sitekey="0x4AAAAAABd1nE-a5z1aEsok" data-callback="onCaptchaSuccess"></div>
-  </form>
+    <!-- Página principal -->
+    <div id="mainContent" class="hidden">
+        <!-- Video de fondo -->
+        <video autoplay muted loop id="bgVideo" class="fixed top-0 left-0 w-full h-full object-cover z-0">
+            <source src="./assets/media/video/background/1.mp4" type="video/mp4">
+        </video>
+        
+        <!-- Audio de fondo -->
+        <audio autoplay loop id="bgMusic">
+            <source src="./assets/media/sound/background/be_more.mp3" type="audio/mpeg">
+        </audio>
+        
+        <!-- Contenido -->
+        <div class="relative z-10 min-h-screen flex flex-col">
+            <!-- Header
+            <header class="py-8 text-center glass-effect">
+                <h1 class="text-4xl md:text-5xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-400">TEAM FALOPA</h1>
+                <p class="text-xl text-gray-400">Innovación y tecnología en acción</p>
+            </header> -->
+            
+            <!-- Tarjetas de miembros -->
+            <main class="casillas flex-grow container mx-auto p-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
+                    <!-- Miembro 1 -->
+                    <div class="relative w-72 h-96 perspective-1000">
+                        <div class="bg-transparent card-3d glass-reflective glass-effect rounded overflow-hidden cursor-pointer h-full w-full"
+                             onclick="openModal('modal1')"
+                             onmousemove="handleCardMove(event, this)"
+                             onmouseleave="resetCard(this)">
+                            <img id="img1" src="./assets/pfp/default.jpg" alt="MaximoDev" class="w-auto h-64 object-cover rounded-full m-auto p-8">
+                            <img id="deco_us1" src="./assets/pfp/default.jpg" alt="MaximoDev" class="elhueso w-auto hcorreccion m-auto p-8">
+                            <div>
+                                <h3 class="elhueso text-xl font-semibold text-center">MaximoDev</h3>
+                                <p class="elhueso text-gray-400 text-sm text-center mt-1">Fundador</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Miembro 2 
+                    <div class="relative w-72 h-96 perspective-1000">
+                        <div class="bg-transparent card-3d glass-reflective glass-effect rounded overflow-hidden cursor-pointer h-full w-full"
+                             onclick="openModal('modal2')"
+                             onmousemove="handleCardMove(event, this)"
+                             onmouseleave="resetCard(this)">
+                            <img id="img4" src="./assets/pfp/default.jpg" alt="Miembro 2" class="w-full h-64 object-cover">
+                            <div class="p-4">
+                                <h3 class="text-xl font-semibold text-center">Saneko</h3>
+                                <p class="text-gray-400 text-sm text-center mt-1">Administrador</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                     Miembro 3 
+                    <div class="relative w-72 h-96 perspective-1000">
+                        <div class="bg-transparent card-3d glass-reflective glass-effect rounded overflow-hidden cursor-pointer h-full w-full"
+                             onclick="openModal('modal2')"
+                             onmousemove="handleCardMove(event, this)"
+                             onmouseleave="resetCard(this)">
+                            <img id="img3" src="./assets/pfp/default.jpg" alt="Miembro 2" class="w-full h-64 object-cover">
+                            <div class="p-4">
+                                <h3 class="text-xl font-semibold text-center">Einsamer Prinz</h3>
+                                <p class="text-gray-400 text-sm text-center mt-1">Administrador</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    Miembro 4 
+                    <div class="relative w-72 h-96 perspective-1000">
+                        <div class="bg-transparent card-3d glass-reflective glass-effect rounded overflow-hidden cursor-pointer h-full w-full"
+                             onclick="openModal('modal3')"
+                             onmousemove="handleCardMove(event, this)"
+                             onmouseleave="resetCard(this)">
+                            <img id="img2" src="./assets/pfp/default.jpg" alt="Miembro 3" class="w-full h-64 object-cover">
+                            <div class="p-4">
+                                <h3 class="text-xl font-semibold text-center">Anthony76</h3>
+                                <p class="text-gray-400 text-sm text-center mt-1">Administrador</p>
+                            </div>
+                        </div>
+                    </div> -->
+                </div>
+            </main>
+            
+            <!-- Sección Discord -->
+            <footer class="py-8 text-center">
+                <button id="discordButton" class="flex items-center justify-center mx-auto bg-transparent text-white p-4 rounded-full transition-all duration-300 glass-effect transform hover:scale-105 group"
+                             onclick="openModal('paneldiscord')"
+                             onmousemove="handleCardMove(event, this)"
+                             onmouseleave="resetCard(this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-9 w-9 group-hover:animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                    </svg>
+                </button>
+            </footer>
+        </div>
+        
+        <!-- Modales -->
+        <!-- Modal Miembro 1 -->
+        <div id="modal1" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm opacity-0 invisible transition-all duration-300 modal-transition">
+            <div class="bg-transparent card-3d glass-effect rounded overflow-hidden max-w-2xl w-full mx-4"
+                onmousemove="handleCardMove(event, this)"
+                onmouseleave="resetCard(this)">
+                <div class="flex flex-col md:flex-row">
+                    <img src=".\assets\media\images\logo\85eda31612b9b0d48bcbe05999205f38.png" alt="MaximoDev" class="w-full md:w-1/2 h-64 md:h-auto object-cover">
+                    <div class="p-6 md:w-1/2 relative">
+                        <button onclick="closeModal('modal1')" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        <h3 class="text-2xl font-bold mb-2">MaximoDev</h3>
+                        <p id="username1" class="text-indigo-400 mb-4">Cargando...</p>
+                        <p class="text-gray-300 mb-4">Descripción detallada del miembro del equipo, sus habilidades, experiencia y contribuciones al proyecto.</p>
+                        <div class="flex space-x-3">
+                            <a href="#" class="text-gray-400 hover:text-blue-400 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 2.191 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                                </svg>
+                            </a>
+                            <a href="#" class="text-gray-400 hover:text-blue-400 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                                </svg>
+                            </a>
+                            <a href="#" class="text-gray-400 hover:text-blue-400 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="paneldiscord" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm opacity-0 invisible transition-all duration-300 modal-transition">
+            <div class="bg-transparent card-3d glass-effect rounded overflow-hidden max-w-2xl w-full mx-4"
+                onmousemove="handleCardMove(event, this)"
+                onmouseleave="resetCard(this)">
+                        <button id="discordButton" onclick="closeModal('paneldiscord')" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                <div id="discordPanel" class="max-w-md mx-auto p-6 overflow-hidden transition-all duration-300 transform origin-top scale-y-0 h-0 opacity-0">
+                    <div class="flex items-center mb-4">
+                        <img src="https://cdn.discordapp.com/icons/1361231462334201867/8bf4a7d5d303bf6d4bfd7caa8d058213.webp?size=512" alt="Discord" class="w-16 h-16 rounded-full mr-4 border-2 border-indigo-500">
+                        <div>
+                            <h3 class="text-xl font-semibold text-indigo-300">Team FALOPA</h3>
+                            <p class="text-gray-400 text-sm">Comunidad oficial</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-300">Miembros:</span>
+                            <span class="text-green-400 font-bold">24/56 en línea</span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-2.5">
+                            <div class="bg-green-500 h-2.5 rounded-full" style="width: 42%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="text-gray-300 mb-2">Canales destacados:</h4>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="text-gray-400 hover:text-indigo-300 cursor-pointer transition-colors text-sm p-2 rounded bg-gray-800/50">
+                                # ✅︳ʙɪᴇɴᴠᴇɴɪᴅᴀ
+                            </div>
+                            <div class="text-gray-400 hover:text-indigo-300 cursor-pointer transition-colors text-sm p-2 rounded bg-gray-800/50">
+                                # 💬︳ɢᴇɴᴇʀᴀʟ
+                            </div>
+                            <div class="text-gray-400 hover:text-indigo-300 cursor-pointer transition-colors text-sm p-2 rounded bg-gray-800/50">
+                                # 🔊︳ɢᴇɴᴇʀᴀʟ
+                            </div>
+                            <div class="text-gray-400 hover:text-indigo-300 cursor-pointer transition-colors text-sm p-2 rounded bg-gray-800/50">
+                                # ⚡︳ᴠᴇʀɪꜰɪᴄᴀᴅᴏꜱ
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center pt-4 border-t border-gray-700">
+                        <a href="#" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded transition-all duration-300 flex items-center text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/>
+                            </svg>
+                            Unirse ahora
+                        </a>
+                        <span class="text-gray-400 text-xs">Creado: 15/03/2022</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal Miembro 2 y 3 (estructura similar) -->
+    </div>
 
-  <div id="main-content">
-    <h2>¡Bienvenido a la página principal!</h2>
-    <p>Contenido desbloqueado tras validación exitosa.</p>
-  </div>
-
-  <script>
-    function onCaptchaSuccess(token) {
-      fetch('verificador/verificar-captcha.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          document.querySelector('#captcha-form').style.display = 'none';
-          document.querySelector('#main-content').style.display = 'block';
-        } else {
-          alert("Captcha inválido. Inténtalo nuevamente.");
+    <script>
+        // Función para simular obtención de IP
+        async function getIP() {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const fakeIP = `${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
+                    resolve(fakeIP);
+                }, 2000);
+            });
         }
-      });
-    }
-  </script>
+
+        // Efecto 3D para tarjetas
+        function handleCardMove(e, card) {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const angleX = (y - centerY) / 20;
+            const angleY = (centerX - x) / 20;
+            
+            card.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateY(${angleY}deg) scale(1.05)`;
+            
+            // Efecto de reflejo dinámico
+            const glow = card.querySelector('.glass-reflective::after') || card;
+            const posX = (x / rect.width) * 100;
+            const posY = (y / rect.height) * 100;
+            glow.style.background = `radial-gradient(circle at ${posX}% ${posY}%, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%)`;
+        }
+
+        function resetCard(card) {
+            card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+        }
+
+        // Funciones para modales
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            modal.classList.remove('invisible', 'opacity-0');
+            modal.classList.add('opacity-100', 'visible');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            modal.classList.remove('opacity-100', 'visible');
+            modal.classList.add('invisible', 'opacity-0');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Panel Discord
+        const discordBtn = document.getElementById('discordButton');
+        const discordPanel = document.getElementById('discordPanel');
+        // Abrir/cerrar al hacer click en el botón
+        discordBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Evita que el clic se propague al documento
+        if (discordPanel.classList.contains('scale-y-0')) {
+            discordPanel.classList.remove('scale-y-0', 'h-0', 'opacity-0');
+            discordPanel.classList.add('scale-y-100', 'h-auto', 'opacity-100');
+            } else {
+                discordPanel.classList.add('scale-y-0', 'h-0', 'opacity-0');
+                discordPanel.classList.remove('scale-y-100', 'h-auto', 'opacity-100');
+            }
+        });
+
+    // Cerrar el panel si se hace click fuera
+        document.addEventListener('click', (e) => {
+            const isClickInsidePanel = discordPanel.contains(e.target);
+            const isClickOnButton = discordBtn.contains(e.target);
+
+            if (!isClickInsidePanel && !isClickOnButton) {
+                discordPanel.classList.add('scale-y-0', 'h-0', 'opacity-0');
+                discordPanel.classList.remove('scale-y-100', 'h-auto', 'opacity-100');
+            }
+        });
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Simular verificación
+            setTimeout(async () => {
+                document.getElementById('verificationText').classList.remove('typing-effect');
+                document.getElementById('verificationText').textContent = 'Verificación completada';
+                
+                const ip = await getIP();
+                document.getElementById('ipText').textContent = `IP: ${ip}`;
+                
+                setTimeout(() => {
+                    document.getElementById('enterButton').classList.remove('hidden');
+                }, 500);
+            }, 3000);
+            
+            // Evento para entrar
+            document.getElementById('enterButton').addEventListener('click', () => {
+                document.getElementById('verificationScreen').style.display = 'none';
+                document.getElementById('mainContent').classList.remove('hidden');
+                document.getElementById('bgMusic').play().catch(e => console.log('Autoplay prevented'));
+            });
+            
+            // También con tecla Enter
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !document.getElementById('enterButton').classList.contains('hidden')) {
+                    document.getElementById('verificationScreen').style.display = 'none';
+                    document.getElementById('mainContent').classList.remove('hidden');
+                    document.getElementById('bgMusic').play().catch(e => console.log('Autoplay prevented'));
+                }
+            });
+            
+            // Cerrar modales al hacer clic fuera
+            document.querySelectorAll('.modal-transition').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeModal(this.id);
+                    }
+                });
+            });
+        });
+    </script>
+  <script src="./assets/js/discord.js"></script> <!-- Script for discord functionality -->
 </body>
 </html>
