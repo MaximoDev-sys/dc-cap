@@ -9,7 +9,7 @@ if (!$token) {
     exit;
 }
 
-$secretKey = '0x4AAAAAABd1SNadPJQbaw1qZJHONEao530';
+$secretKey = '0x4AAAAAABd1nF-UlCcHirBQVO0V9AaG5FY';
 
 $response = file_get_contents("https://challenges.cloudflare.com/turnstile/v0/siteverify", false, stream_context_create([
     'http' => [
